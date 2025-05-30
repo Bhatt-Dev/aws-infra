@@ -25,4 +25,4 @@ jobs:
           echo "Testing file"
           echo "$pwd"
           ls -la
-          python3 ../test.py
+          python3 test.py
