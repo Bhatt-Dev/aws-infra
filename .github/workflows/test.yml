@@ -15,9 +15,12 @@ jobs:
           echo "Testing"
 
   test2:
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: print
         run: |
-          ls
+          echo "Testing file"
+          echo "$ls"
+          ls -la
           python3 test.py
