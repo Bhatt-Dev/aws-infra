@@ -21,6 +21,6 @@ jobs:
       - name: print
         run: |
           echo "Testing file"
-          echo "$ls"
+          echo "$pwd"
           ls -la
           python3 test.py
