@@ -1,0 +1,22 @@
+name: Testing a Workflow
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    steps:
+      - name: testing Commands
+        run: |
+          echo "Tesing on Image"
+          tofu --version
+          echo "Testing"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print
+        run: |
+          python3 test.py
