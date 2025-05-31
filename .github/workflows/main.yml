@@ -52,7 +52,7 @@ jobs:
       - name: AWS Authentication
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: "arn:aws:iam::490004630616:role/bhattdev-github-actions-role-dev"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
           role-session-name: Github
           aws-region: ${{ vars.AWS_REGION }}
 
@@ -79,9 +79,9 @@ jobs:
         run: |
           for target in ${{ matrix.targets }}; do
             echo "Initializing Tofu for environment=${{ matrix.environment }}, target=$target"
-            pushd terraform/main/$target
+            cd terraform/main/$target
             tofu init -backend-config=backend/${{ matrix.TF_VAR_ENV }}.tfbackend -input=false
-            popd
+            cd -
 
             echo "Packing init artifacts for $target"
             tar -czf ${target}-init.tgz -C terraform/main/$target .terraform .terraform.lock.hcl
@@ -127,12 +127,12 @@ jobs:
             tar -xzf ${target}-init.tgz -C terraform/main/$target
 
             echo "Running tofu plan for $target"
-            pushd terraform/main/$target
+            cd terraform/main/$target
 
             tofu plan -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars -out=tfplan.binary
 
             tofu show -no-color tfplan.binary > tfplan.txt
-            popd
+            cd -
           done
 
       - name: Upload plan outputs as artifacts
@@ -183,7 +183,7 @@ jobs:
             tar -xzf ${target}-init.tgz -C terraform/main/$target
 
             echo "Running tofu apply for $target"
-            pushd terraform/main/$target
+            cd terraform/main/$target
             tofu apply -auto-approve -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars
-            popd
+            cd -
           done
