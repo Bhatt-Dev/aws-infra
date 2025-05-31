@@ -5,10 +5,14 @@ on:
     branches:
       - main
       - development
+    paths:
+      - 'terraform/**'
   pull_request:
     branches:
       - main
       - development
+    paths:
+      - 'terraform/**'
   workflow_dispatch:
     inputs:
       run_apply:
