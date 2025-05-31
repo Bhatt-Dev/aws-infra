@@ -4,7 +4,7 @@ locals {
     [for domain in var.additional_domain_names : replace(domain, "*.", "")],
   ))
 
-  validation_domains = [for k, v in aws_acm_certaws_acm_certificate.this[0].domain_validation_options : tomap(v) if contains(local.distinct_domain_names, v.domain_name)]
+  validation_domains = [for k, v in aws_acm_certificate.this[0].domain_validation_options : tomap(v) if contains(local.distinct_domain_names, v.domain_name)]
 }
 
 resource "aws_acm_certificate" "this" {
