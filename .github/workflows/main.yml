@@ -1,0 +1,184 @@
+name: AWS Infrastructure Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger (optional)
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}          # <-- Use environment secrets here
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            variables:
+              TF_VAR_ENV: dev
+          # - environment: production
+          #   variables:
+          #     TF_VAR_ENV: prod
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Tofu
+        run: |
+          echo "Setting up Tofu for environment: ${{ matrix.environment }}"
+          tofu --version
+          pwd
+
+      - name: Tofu Format
+        run: |
+          echo "Running Tofu Format"
+          if tofu fmt -check --recursive; then
+            echo "Tofu Format check passed"
+          else
+            echo "Tofu Format check failed"
+            exit 1
+          fi
+          echo "Tofu Format completed successfully"
+
+      - name: AWS Authentication
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: Github
+          aws-region: ${{ secrets.AWS_REGION }}
+
+  initialize:
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}          # <-- Use environment secrets here
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            targets: 'core'
+            TF_VAR_ENV: dev
+          # - environment: production
+          #   targets: 'core service'
+          #   TF_VAR_ENV: prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Tofu init for all targets
+        run: |
+          for target in ${{ matrix.targets }}; do
+            echo "Initializing Tofu for environment=${{ matrix.environment }}, target=$target"
+            pushd terraform/main/$target
+            tofu init -backend-config=backend/${{ matrix.TF_VAR_ENV }}.tfbackend -input=false
+            popd
+
+            echo "Packing init artifacts for $target"
+            tar -czf ${target}-init.tgz -C terraform/main/$target .terraform .terraform.lock.hcl
+          done
+
+      - name: Upload all Tofu init artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tofu-init-${{ matrix.environment }}
+          path: |
+            core-init.tgz
+            service-init.tgz
+
+  plan:
+    runs-on: ubuntu-latest
+    needs: initialize
+    environment: ${{ matrix.environment }}          # <-- Use environment secrets here
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            targets: 'core'
+            TF_VAR_ENV: dev
+          # - environment: production
+          #   targets: 'core service'
+          #   TF_VAR_ENV: prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download tofu init artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tofu-init-${{ matrix.environment }}
+
+      - name: Run tofu plan for all targets and save plan output
+        run: |
+          for target in ${{ matrix.targets }}; do
+            echo "Extracting init for $target"
+            mkdir -p terraform/main/$target
+            tar -xzf ${target}-init.tgz -C terraform/main/$target
+
+            echo "Running tofu plan for $target"
+            pushd terraform/main/$target
+
+            tofu plan -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars -out=tfplan.binary
+
+            tofu show -no-color tfplan.binary > tfplan.txt
+            popd
+          done
+
+      - name: Upload plan outputs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tofu-plan-${{ matrix.environment }}
+          path: |
+            terraform/main/core/tfplan.binary
+            terraform/main/core/tfplan.txt
+            terraform/main/service/tfplan.binary
+            terraform/main/service/tfplan.txt
+
+  apply:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' # Only run on manual dispatch
+    environment: ${{ matrix.environment }}          # <-- Use environment secrets here
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            targets: 'core'
+            TF_VAR_ENV: dev
+          # - environment: production
+          #   targets: 'core service'
+          #   TF_VAR_ENV: prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download tofu init artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tofu-init-${{ matrix.environment }}
+
+      - name: Download plan artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tofu-plan-${{ matrix.environment }}
+
+      - name: Run tofu apply for all targets
+        run: |
+          for target in ${{ matrix.targets }}; do
+            echo "Extracting init for $target"
+            mkdir -p terraform/main/$target
+            tar -xzf ${target}-init.tgz -C terraform/main/$target
+
+            echo "Running tofu apply for $target"
+            pushd terraform/main/$target
+            tofu apply -auto-approve -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars
+            popd
+          done
