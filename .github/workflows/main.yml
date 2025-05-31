@@ -50,11 +50,7 @@ jobs:
           echo "Tofu Format completed successfully"
 
       - name: AWS Authentication
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
-          role-session-name: Github
-          aws-region: ${{ vars.AWS_REGION }}
+        uses: ./.github/actions/aws-auth
 
   initialize:
     needs: setup
@@ -74,6 +70,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: AWS Authentication
+        uses: ./.github/actions/aws-auth
 
       - name: Tofu init for all targets
         run: |
@@ -113,6 +112,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: AWS Authentication
+        uses: ./.github/actions/aws-auth
 
       - name: Download tofu init artifacts
         uses: actions/download-artifact@v4
@@ -164,6 +166,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: AWS Authentication
+        uses: ./.github/actions/aws-auth
 
       - name: Download tofu init artifacts
         uses: actions/download-artifact@v4
