@@ -48,7 +48,7 @@ jobs:
       - name: AWS Authentication
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: "arn:aws:iam::490004630616:role/bhattdev-github-actions-role-dev"
           role-session-name: Github
           aws-region: ${{ vars.AWS_REGION }}
 
