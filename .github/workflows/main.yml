@@ -164,52 +164,52 @@ jobs:
             terraform/main/service/tfplan.binary
             terraform/main/service/tfplan.txt
 
-  apply:
-    runs-on: ubuntu-latest
-    needs: plan
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_apply == 'true' }}
-    environment: ${{ matrix.environment }}          # <-- Use environment secrets here
-    container:
-      image: ghcr.io/opentofu/opentofu:1.9.0
-    strategy:
-      matrix:
-        include:
-          - environment: development
-            targets: 'core'
-            TF_VAR_ENV: dev
-          # - environment: production
-          #   targets: 'core service'
-          #   TF_VAR_ENV: prod
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # apply:
+  #   runs-on: ubuntu-latest
+  #   needs: plan
+  #   if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_apply == 'true' }}
+  #   environment: ${{ matrix.environment }}          # <-- Use environment secrets here
+  #   container:
+  #     image: ghcr.io/opentofu/opentofu:1.9.0
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - environment: development
+  #           targets: 'core'
+  #           TF_VAR_ENV: dev
+  #         # - environment: production
+  #         #   targets: 'core service'
+  #         #   TF_VAR_ENV: prod
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: AWS Authentication
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
-          role-session-name: Github
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: AWS Authentication
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
+  #         role-session-name: Github
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Download tofu init artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: tofu-init-${{ matrix.environment }}
+  #     - name: Download tofu init artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: tofu-init-${{ matrix.environment }}
 
-      - name: Download plan artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: tofu-plan-${{ matrix.environment }}
+  #     - name: Download plan artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: tofu-plan-${{ matrix.environment }}
 
-      - name: Run tofu apply for all targets
-        run: |
-          for target in ${{ matrix.targets }}; do
-            echo "Extracting init for $target"
-            mkdir -p terraform/main/$target
-            tar -xzf ${target}-init.tgz -C terraform/main/$target
+  #     - name: Run tofu apply for all targets
+  #       run: |
+  #         for target in ${{ matrix.targets }}; do
+  #           echo "Extracting init for $target"
+  #           mkdir -p terraform/main/$target
+  #           tar -xzf ${target}-init.tgz -C terraform/main/$target
 
-            echo "Running tofu apply for $target"
-            cd terraform/main/$target
-            tofu apply -auto-approve -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars
-            cd -
-          done
+  #           echo "Running tofu apply for $target"
+  #           cd terraform/main/$target
+  #           tofu apply -auto-approve -var-file=vars/${{ matrix.TF_VAR_ENV }}.tfvars
+  #           cd -
+  #         done

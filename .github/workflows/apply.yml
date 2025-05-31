@@ -1,0 +1,57 @@
+name: AWS Infrastructure Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to apply (e.g., development, production)'
+        required: true
+      run_id:
+        description: 'Workflow Run ID from the plan workflow to fetch artifacts'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}  # Use environment secrets here
+    container:
+      image: ghcr.io/opentofu/opentofu:1.9.0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: AWS Authentication
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
+          role-session-name: Github
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Download tofu init artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tofu-init-${{ github.event.inputs.environment }}
+          run-id: ${{ github.event.inputs.run_id }}
+
+      - name: Download plan artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tofu-plan-${{ github.event.inputs.environment }}
+          run-id: ${{ github.event.inputs.run_id }}
+
+      - name: Run tofu apply for all targets
+        run: |
+          for target in core; do  # Adjust targets as needed, e.g., 'core service'
+            echo "Extracting init for $target"
+            mkdir -p terraform/main/$target
+            tar -xzf ${target}-init.tgz -C terraform/main/$target
+
+            echo "Running tofu apply for $target"
+            cd terraform/main/$target
+            tofu apply -auto-approve -var-file=vars/${{ github.event.inputs.environment }}.tfvars
+            cd -
+          done
