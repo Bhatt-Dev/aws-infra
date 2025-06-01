@@ -1,4 +1,4 @@
-name: AWS Infrastructure Workflow
+name: Infrastructure [Destroy]
 
 on:
   workflow_dispatch:
