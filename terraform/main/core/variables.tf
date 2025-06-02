@@ -3,11 +3,6 @@ variable "remote_state_bucket" {
   type        = string
 }
 
-variable "key" {
-  description = "The key for the remote state file in the S3 bucket"
-  type        = string
-}
-
 variable "region" {
   description = "The AWS region where the remote state bucket is located"
   type        = string
