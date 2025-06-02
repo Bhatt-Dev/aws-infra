@@ -7,9 +7,8 @@ on:
       - development
     paths:
       - 'terraform/**'
-    paths-ignore:
-      - 'README.md'
-      - 'terraform/**/README.md'
+      - '!terraform/**/README.md'
+      - '!README.md'
 
   pull_request:
     branches:
@@ -17,9 +16,8 @@ on:
       - development
     paths:
       - 'terraform/**'
-    paths-ignore:
-      - 'README.md'
-      - 'terraform/**/README.md'
+      - '!terraform/**/README.md'
+      - '!README.md'
 
 permissions:
   id-token: write
