@@ -36,8 +36,8 @@ Below is a list of available modules. Each module contains its own README in its
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="/terraform/modules/terraform-aws-acm"></a> [acm](#module\_acm) | `terraform/modules/terraform-aws-acm` | 1.0.0 |
-| <a name="/terraform/modules/terraform-aws-vpc"></a> [vpc](#module\_vpc) | `terraform/modules/terraform-aws-vpc` | 1.0.0 |
+| <a name="/terraform/modules/terraform-aws-acm"></a> [acm](/terraform/modules/terraform-aws-vpc) | `terraform/modules/terraform-aws-acm` | 1.0.0 |
+| <a name="/terraform/modules/terraform-aws-vpc"></a> [vpc](terraform/modules/terraform-aws-vpc) | `terraform/modules/terraform-aws-vpc` | 1.0.0 |
 
 
 ## Usage
