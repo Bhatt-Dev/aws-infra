@@ -76,7 +76,7 @@ jobs:
       matrix:
         include:
           - environment: development
-            targets: 'core'
+            targets: 'core service'
             TF_VAR_ENV: dev
           # - environment: production
           #   targets: 'core service'
@@ -122,7 +122,7 @@ jobs:
       matrix:
         include:
           - environment: development
-            targets: 'core'
+            targets: 'core service'
             TF_VAR_ENV: dev
           # - environment: production
           #   targets: 'core service'
@@ -181,7 +181,7 @@ jobs:
       matrix:
         include:
           - environment: development
-            targets: 'core'
+            targets: 'core service'
             TF_VAR_ENV: dev
           # - environment: production
           #   targets: 'core service'
