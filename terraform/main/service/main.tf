@@ -6,7 +6,6 @@ data "terraform_remote_state" "core" {
     bucket       = var.remote_state_bucket
     key          = var.key
     region       = var.region
-    use_lockfile = true
   }
 }
 
