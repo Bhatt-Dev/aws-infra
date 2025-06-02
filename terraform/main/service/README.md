@@ -9,6 +9,10 @@ If you want to deploy for other environments (such as **prod** or **test**), add
 
 The requirements, providers, modules, resources, inputs, and outputs for this configuration are detailed below.
 
+> **Note:** Core Setup should be deployed first, by editing the workflow to target only Core.
+
+> If Core is not deployed, then data from core output cannot be used as input in services.
+
 ---
 
 ### Requirements
