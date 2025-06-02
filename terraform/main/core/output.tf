@@ -17,3 +17,8 @@ output "acm_certificate_arn" {
   description = "ARN of the ACM certificate"
   value       = module.acm.acm_certificate_arn
 }
+
+output "hosted_zone_name" {
+  description = "Name of the hosted zone"
+  value       = var.hosted_zone_name
+}
