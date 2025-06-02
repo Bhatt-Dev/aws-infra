@@ -4,7 +4,7 @@ data "terraform_remote_state" "core" {
   backend = "s3"
   config = {
     bucket       = var.remote_state_bucket
-    key          = var.remote_state_key
+    key          = var.key
     region       = var.region
     use_lockfile = true
   }
