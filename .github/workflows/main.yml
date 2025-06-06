@@ -29,15 +29,6 @@ jobs:
     environment: ${{ matrix.environment }}          # <-- Use environment secrets here
     container:
       image: ghcr.io/opentofu/opentofu:1.9.0
-    strategy:
-      matrix:
-        include:
-          - environment: development
-            variables:
-              TF_VAR_ENV: dev
-          # - environment: production
-          #   variables:
-          #     TF_VAR_ENV: prod
     steps:
       - name: Code Checkout
         uses: actions/checkout@v4
@@ -58,13 +49,6 @@ jobs:
             exit 1
           fi
           echo "Tofu Format completed successfully"
-
-      - name: AWS Authentication
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACCESS_ROLE }} # Use a secret for the role ARN
-          role-session-name: Github
-          aws-region: ${{ vars.AWS_REGION }}
 
   initialize:
     needs: setup
